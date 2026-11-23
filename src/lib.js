@@ -3,7 +3,11 @@ export async function api(path, opt = {}) {
     credentials: 'same-origin', ...opt,
     headers: { ...(typeof opt.body === 'string' ? { 'Content-Type': 'application/json' } : {}), ...opt.headers }
   })
-  const j = await r.json().catch(() => ({}))
+  const contentType = r.headers.get('content-type') || ''
+  if (!contentType.includes('application/json')) {
+    throw Object.assign(new Error('The site API is unavailable or returned an invalid response.'), { status: r.status })
+  }
+  const j = await r.json().catch(() => { throw Object.assign(new Error('The site API returned invalid JSON.'), { status: r.status }) })
   if (!r.ok) throw Object.assign(new Error(j.error || 'Something went wrong. Please try again.'), { status: r.status })
   return j
 }
