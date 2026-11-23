@@ -19,7 +19,11 @@ export default function App() {
   const [menu, setMenu] = useState(false)
 
   useEffect(() => {
-    Promise.all([api('/properties'), api('/site')]).then(([p, s]) => { setAll(p); setSite(s) }).catch(() => setLoadErr(true))
+    Promise.all([api('/properties'), api('/site')]).then(([p, s]) => {
+      if (!Array.isArray(p)) throw new Error('The properties API did not return a list.')
+      setAll(p)
+      setSite(s && typeof s === 'object' && !Array.isArray(s) ? s : {})
+    }).catch(() => setLoadErr(true))
     const pop = () => { setRoute(routeNow()); setMenu(false); window.scrollTo(0, 0) }
     addEventListener('popstate', pop)
     return () => removeEventListener('popstate', pop)
